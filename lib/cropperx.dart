@@ -25,6 +25,10 @@ class Cropper extends StatefulWidget {
   /// The maximum scale the user is able to zoom. Defaults to 2.5
   final double zoomScale;
 
+  /// The initial zoom level. Defaults to 1, can't be lower than 1, can't be
+  /// higher than [zoomScale]
+  final double initialZoom;
+
   /// The aspect ratio to crop the image to. Defaults to a square (an aspect ratio of 1.0)
   final double aspectRatio;
 
@@ -52,6 +56,7 @@ class Cropper extends StatefulWidget {
     this.overlayColor = Colors.black38,
     this.overlayType = OverlayType.none,
     this.zoomScale = 2.5,
+    this.initialZoom = 1,
     this.gridLineThickness = 2.0,
     this.aspectRatio = 1,
     this.rotationTurns = 0,
@@ -60,7 +65,9 @@ class Cropper extends StatefulWidget {
     this.onScaleEnd,
     required this.cropperKey,
     required this.image,
-  }) : super(key: key);
+  }) :  assert(initialZoom >= 1),
+        assert(initialZoom <=zoomScale),
+        super(key: key);
 
   @override
   State<Cropper> createState() => _CropperState();
@@ -245,7 +252,8 @@ class _CropperState extends State<Cropper> {
       final renderBox = context.findRenderObject() as RenderBox?;
       final childSize = renderBox?.size ?? Size.zero;
       if (childSize != Size.zero) {
-        final coverRatio = _getCoverRatio(parentSize, childSize);
+        final coverRatio = _getCoverRatio(parentSize, childSize)
+            * widget.initialZoom;
         final value = Matrix4.identity() * coverRatio;
 
         // Center the image inside the InteractiveViewer
